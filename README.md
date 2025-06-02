@@ -38,7 +38,7 @@ outputDir/
 
 Other settings:
 * `--other`: Other images/atlases in MNI space to coregister. Takes a list of paths, e.g. ['path/atlas1.nii', 'path/atlas2.nii']
-* `--inter`: Interpolation procedures to follow the arguments from --other. Takes a list of numbers of equal size to other, e.g. [0, 1]
+* `--inter`: Interpolation procedures to follow the arguments from --other. Takes a list of numbers of equal size to other, e.g. [0, 1] (All set to 0 (nearest neighbour) if not provided)
 
 ## Note!
 This code is intended for academic and research use only. Please cite the appropriate references when using TotalSegmentator or SPM in publications.
