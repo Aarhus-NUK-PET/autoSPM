@@ -26,7 +26,7 @@ def autoSPM(imgPath, ctPath, outputPath=None, other=None, inter=None, verbose=Fa
     if verbose: print(f"Running TotalSegmentator for brain segmentation on ct...")
     # Run TotalSegmentator for brain segmentation
     if not 'brain.nii.gz' in os.listdir(outputPath):
-        totalsegmentator(ctPath, outputPath, roi_subset=['brain'], fast=True, fullverbose=fullverbose)
+        totalsegmentator(ctPath, outputPath, roi_subset=['brain'], fast=True, verbose=fullverbose)
         if verbose: print(f"TotalSegmentator finished! ")
     else: 
         if verbose: print(f"Brain mask found, skipping segmentation.")
