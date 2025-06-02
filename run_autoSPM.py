@@ -49,7 +49,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run autoSPM pipeline for brain segmentation and registration.")
     parser.add_argument("--toSegment", type=str, required=True, help="Path to the input image file.")
     parser.add_argument("--ctPath", type=str, required=True, help="Path to the CT image file.")
-    parser.add_argument("--outputPath", type=str, default=None, help="Path to save the output image files.")
+    parser.add_argument("--outputDir", type=str, required=True, help="Path to save the output image files.")
     parser.add_argument("--other", type=str, nargs='*', default=None, help="Additional images to co-register (must be in MNI space).")
     parser.add_argument("--inter", type=str, default=None, help="Interpolation method for co-registration of additional images.")
     parser.add_argument("--verbose", action='store_true', help="Enable verbose output.")
@@ -57,7 +57,7 @@ def main():
 
     args = parser.parse_args()
     
-    autoSPM(args.toSegment, args.ctPath, args.outputPath, args.other, args.inter, args.verbose, args.fullverbose)
+    autoSPM(args.toSegment, args.ctPath, args.outputDir, args.other, args.inter, args.verbose, args.fullverbose)
 
 
 if __name__ == "__main__":
