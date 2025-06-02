@@ -67,7 +67,7 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, int
         if inter is not None: resliced = eng.SPMregister(brainPath, others, np.array(inter))
         else: resliced = eng.SPMregister(brainPath, others)
     else: resliced = eng.SPMregister(brainPath)
-    #os.remove(brainPath)
+    os.remove(brainPath)
 
     for reslice in resliced:
         rslceImg = sitk.ReadImage(reslice)
@@ -77,7 +77,7 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, int
         imgReorigin.SetOrigin(tuple(img_space_origin))
         sitk.WriteImage(imgReorigin, reslice)
     if verbose:
-        print(f"Resliced images saved at: \n{'\n'.join(resliced)}\n")
+        print("Resliced images saved at: \n" + '\n'.join(resliced))
     return resliced
 
 
