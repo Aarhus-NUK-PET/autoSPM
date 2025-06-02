@@ -8,7 +8,7 @@
 - Brain segmentation from CT using TotalSegmentator
 - Rigid registration from MNI space to image space using SPM12 (MATLAB)
 - Optional co-registration of additional atlases
-- Handles any image format that can be loaded with SimpleITK
+- Handles any image format that can be loaded with SimpleITK (Not thouroughly tested)
 
 ## Dependencies
 
