@@ -1,17 +1,20 @@
 # autoSPM
 
-**autoSPM** is a Python-based pipeline for automatic brain segmentation and co-registration of PET/CT images using TotalSegmentator and SPM12 (via MATLAB).
+**autoSPM** is a Python-based pipeline for automatic brain segmentation and co-registration of brain field maps and atlases to PET/CT images using TotalSegmentator and SPM12 (via MATLAB). 
 
----
 
 ## Features
 
 - Brain segmentation from CT using TotalSegmentator
-- Rigid registration to MNI space via SPM12 (MATLAB)
+- Rigid registration from MNI space to image space using SPM12 (MATLAB)
 - Optional co-registration of additional images
 - Handles any image format that can be loaded with SimpleITK
 
----
+## Dependencies
+
+- TotalSegmentator (https://github.com/wasserth/TotalSegmentator)
+- SPM12 (installed and configured in MATLAB) (https://www.fil.ion.ucl.ac.uk/spm/)
+- MATLAB Engine API for Python (https://se.mathworks.com/help/matlab/matlab-engine-for-python.html)
 
 ## Usage
 
@@ -30,9 +33,12 @@ outputDir/
 │   ├── csf.nii               # CSF probabilit map
 │   ├── grey.nii              # Grey matter probabilit map
 │   └── white.nii             # White matter probabilit map
-├── brain.nii.gz              # Brain segmentatio from TotalSegmentator
+├── brain.nii.gz              # Brain segmentation from TotalSegmentator
 ```
 
 Other settings:
 * `--other`: Other images/atlases in MNI space to coregister. Takes a list of paths, e.g. ['path/atlas1.nii', 'path/atlas2.nii']
 * `--inter`: Interpolation procedures to follow the arguments from --other. Takes a list of numbers of equal size to other, e.g. [0, 1]
+
+## Note!
+This code is intended for academic and research use only. Please cite the appropriate references when using TotalSegmentator or SPM in publications.
