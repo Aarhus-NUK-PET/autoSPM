@@ -6,7 +6,7 @@ import matlab.engine
 
 
 
-def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, inter=None):
+def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, inter=None, verbose=False):
     """
     Saves 
     
@@ -18,7 +18,8 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, int
     Returns:
     str: Path to the generated white matter mask.
     """
-    validate_inputs(imgPath, maskPath, brainnum, outputPath, other, inter)
+    validate_inputs(imgPath, maskPath, outputPath, other, inter)
+    validate_brainnum(maskPath, brainnum)
     
     # Start MATLAB engine
     eng = matlab.engine.start_matlab()
@@ -75,8 +76,8 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, int
         imgReorigin.SetDirection(rslceImg.GetDirection())
         imgReorigin.SetOrigin(tuple(img_space_origin))
         sitk.WriteImage(imgReorigin, reslice)
-
-    print(f"Resliced images: \n{'\n'.join(resliced)}\n")
+    if verbose:
+        print(f"Resliced images saved at: \n{'\n'.join(resliced)}\n")
     return resliced
 
 
@@ -144,26 +145,12 @@ def corrOriginToMNI(cropped_img: sitk.Image, mni_img: sitk.Image) -> sitk.Image:
 
 
 
-def validate_inputs(imgPath, maskPath, brainnum=1, outputPath=None, other=None, inter=None):
+def validate_inputs(imgPath, maskPath, outputPath=None, other=None, inter=None):
     # Check paths exist
     if not os.path.exists(imgPath):
         raise FileNotFoundError(f"Image path does not exist: {imgPath}")
     if not os.path.exists(maskPath):
         raise FileNotFoundError(f"Mask path does not exist: {maskPath}")
-    
-    # Check brainnum
-    if not isinstance(brainnum, int) or brainnum < 0:
-        raise ValueError(f"'brainnum' must be a non-negative integer. Got: {brainnum}")
-    
-    # Try loading images
-    try:
-        mask = imgLoad(maskPath)
-    except Exception as e:
-        raise RuntimeError(f"Failed to load mask image: {e}")
-    
-    mask_arr = sitk.GetArrayFromImage(mask)
-    if not np.any(mask_arr == brainnum):
-        raise ValueError(f"No voxels with label '{brainnum}' found in the mask.")
     
     # Check output path
     if outputPath is not None:
@@ -202,8 +189,18 @@ def validate_inputs(imgPath, maskPath, brainnum=1, outputPath=None, other=None, 
     if other is not None and inter_arr is not None:
         if len(other) != len(inter_arr):
             raise ValueError(f"'other' and 'inter' must be of the same length. Got: {len(other)} and {len(inter_arr)}. Please choose interpolation method(s) for each image in 'other'.")
-
-
-
-
+        
+def validate_brainnum(maskPath, brainnum):
+    if not isinstance(brainnum, int) or brainnum < 0:
+        raise ValueError(f"'brainnum' must be a non-negative integer. Got: {brainnum}")
+    
+    # Try loading images
+    try:
+        mask = imgLoad(maskPath)
+    except Exception as e:
+        raise RuntimeError(f"Failed to load mask image: {e}")
+    
+    mask_arr = sitk.GetArrayFromImage(mask)
+    if not np.any(mask_arr == brainnum):
+        raise ValueError(f"No voxels with label '{brainnum}' found in the mask.")
 
