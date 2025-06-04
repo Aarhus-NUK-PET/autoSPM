@@ -56,6 +56,7 @@ function files = copySPMfiles(path, otherpaths, paths)
     files = [files; copyFile(fullfile(spm('Dir'),'toolbox', 'FieldMap', 'grey.nii'),path)];
     if otherpaths
         for i = 1:length(paths)
+            if ~exist(paths{i}, 'file'),error('The file %s does not exist.', paths{i}); end
            files = [files; copyFile(char(paths(i)), path)];
         end
     end
@@ -66,7 +67,17 @@ end
 
 function filename = copyFile(root, newpath)
     [~,name,ext] = fileparts(root);
+    if contains(name, '.nii') && strcmp(ext, '.gz')
+        outdir = fullfile(newpath, 'registered');
+        if ~exist(outdir, 'dir'), mkdir(outdir); end
+        filenames = gunzip(root, outdir);
+        filename = filenames{1};
+    elseif strcmp(ext, '.nii')
+        filename = fullfile(newpath, 'registered', strcat(name,ext));
+        copyfile(root, filename)
+    else
+        error('The file %s is not a valid NIfTI file.', root);
+    end
 
-    filename = fullfile(newpath, 'registered', strcat(name,ext));
-    copyfile(root, filename)
+    
 end
