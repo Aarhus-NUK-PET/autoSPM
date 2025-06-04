@@ -6,7 +6,7 @@ import matlab.engine
 
 
 
-def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, inter=None, verbose=False):
+def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image', other=None, inter=None, verbose=False):
     """
     Saves 
     
@@ -18,8 +18,9 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, int
     Returns:
     str: Path to the generated white matter mask.
     """
-    validate_inputs(imgPath, maskPath, outputPath, other, inter)
+    validate_inputs(imgPath, maskPath, toSpace, outputPath, other, inter)
     validate_brainnum(maskPath, brainnum)
+    toSpace = toSpace.lower()
     
     # Start MATLAB engine
     eng = matlab.engine.start_matlab()
@@ -35,7 +36,7 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, int
     imgArr = sitk.GetArrayFromImage(img)
 
     # Isolate brain region
-    brainMask = binary_dilation(np.isclose(maskArr, brainnum).astype(int), iterations=2)
+    brainMask = binary_dilation(np.isclose(maskArr, brainnum).astype(int), iterations=4)
     brain = np.multiply(imgArr, brainMask)
     brainLoc = np.where(brainMask == 1)
     maxZ = np.max(brainLoc[0]); minZ = np.min(brainLoc[0])
@@ -56,28 +57,43 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, other=None, int
     imgCrop.SetDirection(tuple(direction.flatten()))
     imgCrop.SetOrigin(tuple(img_space_origin))
 
-    # Resample to MNI space
+    # Resample to MNI origin
     mnitemp = sitk.ReadImage(eng.getMNIpath())
     brainMNI = corrOriginToMNI(imgCrop, mnitemp)
-    brainPath = os.path.join(outputPath, "BrainPET_reorigin.nii")
+    regDir = os.path.join(outputPath, 'registered')
+    os.makedirs(regDir, exist_ok=True)
+    brainPath = os.path.join(regDir,"BrainInMNI.nii")
     sitk.WriteImage(brainMNI, brainPath)
 
-    if other is not None:
-        others = {othr for othr in other}
-        if inter is not None: resliced = eng.SPMregister(brainPath, others, np.array(inter))
-        else: resliced = eng.SPMregister(brainPath, others)
-    else: resliced = eng.SPMregister(brainPath)
-    os.remove(brainPath)
+    # Reslice to target space
+    if toSpace == 'image':
+        if other is not None:
+            others = {othr for othr in other}
+            if inter is not None: resliced = eng.SPMregister(brainPath, others, np.array(inter))
+            else: resliced = eng.SPMregister(brainPath, others)
+        else: resliced = eng.SPMregister(brainPath)
+        os.remove(brainPath)
 
-    for reslice in resliced:
-        rslceImg = sitk.ReadImage(reslice)
-        imgReorigin = sitk.GetImageFromArray(sitk.GetArrayFromImage(rslceImg).astype(np.float32))
-        imgReorigin.SetSpacing(rslceImg.GetSpacing())
-        imgReorigin.SetDirection(rslceImg.GetDirection())
-        imgReorigin.SetOrigin(tuple(img_space_origin))
-        sitk.WriteImage(imgReorigin, reslice)
+        for reslice in resliced:
+            rslceImg = sitk.ReadImage(reslice)
+            imgReorigin = sitk.GetImageFromArray(sitk.GetArrayFromImage(rslceImg).astype(np.float32))
+            imgReorigin.SetSpacing(rslceImg.GetSpacing())
+            imgReorigin.SetDirection(rslceImg.GetDirection())
+            imgReorigin.SetOrigin(tuple(img_space_origin))
+            sitk.WriteImage(imgReorigin, reslice)
+            
+    # Reslice to MNI space
+    elif toSpace == 'mni':
+        if inter is not None:
+            resliced = eng.Brainregister(brainPath, np.array(inter))
+        else:
+            resliced = eng.Brainregister(brainPath)
+
     if verbose:
-        print("Resliced images saved at: \n" + '\n'.join(resliced))
+        if toSpace == 'mni':
+            print(f"Resliced brain image saved in MNI space at: \n" + resliced)
+        elif toSpace == 'image':
+            print(f"Resliced field maps and atlases saved in image space at: \n" + '\n'.join(resliced))
     return resliced
 
 
@@ -145,7 +161,13 @@ def corrOriginToMNI(cropped_img: sitk.Image, mni_img: sitk.Image) -> sitk.Image:
 
 
 
-def validate_inputs(imgPath, maskPath, outputPath=None, other=None, inter=None):
+def validate_inputs(imgPath, maskPath, toSpace, outputPath=None, other=None, inter=None):
+    # Check toSpace argment
+    # toSpace must be either 'Image' or 'MNI'
+    tospacefin = toSpace.lower()
+    if tospacefin not in ['image', 'mni']:
+        raise ValueError(f"'toSpace' must be either 'Image' or 'MNI'. Got: {toSpace}") 
+
     # Check paths exist
     if not os.path.exists(imgPath):
         raise FileNotFoundError(f"Image path does not exist: {imgPath}")
@@ -169,6 +191,8 @@ def validate_inputs(imgPath, maskPath, outputPath=None, other=None, inter=None):
                 raise ValueError(f"All items in 'other' must be strings. Found: {type(p)}")
             if not os.path.exists(p):
                 raise FileNotFoundError(f"File in 'other' does not exist: {p}")
+        if tospacefin=='mni':
+            print(f"Warning: 'other' is ignored when 'toSpace' is 'MNI'. autoSPM assumes all atlases in 'other' are in MNI space.")
     
     # Validate 'inter'
     if inter is not None:
