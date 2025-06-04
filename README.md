@@ -9,6 +9,7 @@
 - Rigid registration from MNI space to image space using SPM12 (MATLAB)
 - Optional co-registration of additional atlases
 - Handles any image format that can be loaded with SimpleITK (Not thoroughly tested)
+- Optionally registers the isolated brain data to MNI space
 
 ## Dependencies
 
@@ -41,6 +42,10 @@ Other settings:
   * e.g. ` --other 'path/atlas1.nii' 'path/atlas2.nii'`
 * `--inter`: Interpolation procedures to follow the arguments from --other. Takes a space separated list of numbers of equal size to other, e.g. 0 1 (All set to 0 (nearest neighbour) if not provided)
   * e.g. ` --inter 0 1`
+* `--toSpace`: Which space do you want final result in. 
+  * `--toSpace "image"` is default and registers maps and atlases to image space, `--toSpace "MNI"` registers isolated brain to MNI space
+  * `--toSpace "MNI"` renders `--other` inactive as it assumes others are in MNI space. 
+  * `--inter` must be a single number: the interpolation procedure for reslicing of brain to MNI space
 
 ## Note!
 This code is intended for academic and research use only. Please cite the appropriate references when using TotalSegmentator or SPM in publications.
