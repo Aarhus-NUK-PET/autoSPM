@@ -19,7 +19,7 @@ function registered = SPMregister(BrainPET, paths, interpol)
     end
     N = numel(files);
     inter = zeros(1, N);
-    inter(1:min(N,4)) = 1;
+    inter(1:min(N,4)) = 4;
 
     if ~isempty(interpol)
         inter(5:end) = 0;
@@ -39,7 +39,7 @@ function registered = SPMregister(BrainPET, paths, interpol)
 
     for i = 1:numel(files)
         P = char(BrainPET, files{i});  % Reference first
-        spm_reslice(P, struct('interp', inter(i), 'mask', 0, 'which', 1, 'mean', 0, 'prefix', ''));
+        spm_reslice(P, struct('interp', double(inter(i)), 'mask', 0, 'which', 1, 'mean', 0, 'prefix', ''));
     end
     
     registered = files;
@@ -47,7 +47,7 @@ end
 
 
 function files = copySPMfiles(path, otherpaths, paths)
-    if ~exist(strcat(path, '/registered'), 'dir'), mkdir(path, 'registered') 
+    if ~exist(path, 'dir'), mkdir(path) 
     end
     files = {};
     files = [files; copyFile(fullfile(spm('Dir'),'canonical','avg152T1.nii'),path)];
@@ -68,12 +68,11 @@ end
 function filename = copyFile(root, newpath)
     [~,name,ext] = fileparts(root);
     if contains(name, '.nii') && strcmp(ext, '.gz')
-        outdir = fullfile(newpath, 'registered');
-        if ~exist(outdir, 'dir'), mkdir(outdir); end
-        filenames = gunzip(root, outdir);
+        if ~exist(newpath, 'dir'), mkdir(newpath); end
+        filenames = gunzip(root, newpath);
         filename = filenames{1};
     elseif strcmp(ext, '.nii')
-        filename = fullfile(newpath, 'registered', strcat(name,ext));
+        filename = fullfile(newpath, strcat(name,ext));
         copyfile(root, filename)
     else
         error('The file %s is not a valid NIfTI file.', root);
