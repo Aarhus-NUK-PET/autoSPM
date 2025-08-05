@@ -6,7 +6,7 @@ import matlab.engine
 
 
 
-def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image', other=None, inter=None, verbose=False):
+def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image', other=None, inter=None, verbose=False, nonrigid=False):
     """
     Saves 
     
@@ -18,7 +18,7 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image'
     Returns:
     str: Path to the generated white matter mask.
     """
-    validate_inputs(imgPath, maskPath, toSpace, outputPath, other, inter)
+    validate_inputs(imgPath, maskPath, toSpace, nonrigid, outputPath, other, inter)
     validate_brainnum(maskPath, brainnum)
     toSpace = toSpace.lower()
     
@@ -161,7 +161,7 @@ def corrOriginToMNI(cropped_img: sitk.Image, mni_img: sitk.Image) -> sitk.Image:
 
 
 
-def validate_inputs(imgPath, maskPath, toSpace, outputPath=None, other=None, inter=None):
+def validate_inputs(imgPath, maskPath, toSpace, nonrigid, outputPath=None, other=None, inter=None):
     # Check toSpace argment
     # toSpace must be either 'Image' or 'MNI'
     tospacefin = toSpace.lower()
@@ -213,6 +213,9 @@ def validate_inputs(imgPath, maskPath, toSpace, outputPath=None, other=None, int
     if other is not None and inter_arr is not None:
         if len(other) != len(inter_arr):
             raise ValueError(f"'other' and 'inter' must be of the same length. Got: {len(other)} and {len(inter_arr)}. Please choose interpolation method(s) for each image in 'other'.")
+        
+    if  nonrigid and tospacefin != 'mni':
+        print(f'WARNING! Non-rigid registration only able for registration to MNI space') 
         
 def validate_brainnum(maskPath, brainnum):
     if not isinstance(brainnum, int) or brainnum < 0:

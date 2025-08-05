@@ -1,4 +1,4 @@
-function registered = Brainregister(BrainPET, interpol)
+function registered = Brainregister(BrainPET, nonrigid, interpol)
     %SPMRESCLICE Summary of this function goes here
     %   Detailed explanation goes here
     if nargin < 2
@@ -21,8 +21,25 @@ function registered = Brainregister(BrainPET, interpol)
 
     spm_jobman('run', matlabbatch);
 
-    P = char(mnispace, BrainPET);  % Reference first
-    spm_reslice(P, struct('interp', double(interpol(1)), 'mask', 0, 'which', 1, 'mean', 0, 'prefix', ''));
+    if nonrigid
+        matlabbatch{1}.spm.spatial.normalise.estwrite.subj.vol = cellstr(BrainPET);
+        matlabbatch{1}.spm.spatial.normalise.estwrite.subj.resample = cellstr(BrainPET);
+        matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.biasreg = 0.0001;
+        matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.biasfwhm = 60;
+        matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.tpm = {fullfile(spm('Dir'),'tpm','TPM.nii')};
+        matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.affreg = 'mni';
+        matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.reg = [0 0.001 0.5 0.05 0.2];
+        matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.fwhm = 0;
+        matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.samp = 3;
+        matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.bb = [-78 -112 -70; 78 76 85];
+        matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.vox = [2 2 2];
+        matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.interp = 4;
+        spm_jobman('run', matlabbatch);
+    else
+        P = char(mnispace, BrainPET);  % Reference first
+        spm_reslice(P, struct('interp', double(interpol(1)), 'mask', 0, 'which', 1, 'mean', 0, 'prefix', ''));
+    end
+    
     
     registered = BrainPET;
 end
