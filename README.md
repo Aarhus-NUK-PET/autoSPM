@@ -32,20 +32,20 @@ outputDir/
 ├── registered/        
 │   ├── avg152T1.nii          # The average T1 image from SPM
 │   ├── csf.nii               # CSF probabilit map
-│   ├── grey.nii              # Grey matter probabilit map
-│   └── white.nii             # White matter probabilit map
+│   ├── grey.nii              # Grey matter probability map
+│   └── white.nii             # White matter probability map
 ├── brain.nii.gz              # Brain segmentation from TotalSegmentator
 ```
 
 Other settings:
-* `--other`: Other images/atlases in MNI space to coregister. Takes a space separated list of paths
+* `--other`: Other images/atlases in MNI space to coregister. Takes a space-separated list of paths
   * e.g. ` --other 'path/atlas1.nii' 'path/atlas2.nii'`
-* `--inter`: Interpolation procedures to follow the arguments from --other. Takes a space separated list of numbers of equal size to other, e.g. 0 1 (All set to 0 (nearest neighbour) if not provided)
+* `--inter`: Interpolation procedures to follow the arguments from --other. Takes a space-separated list of numbers of equal size to other, e.g. 0 1 (All set to 0 (nearest neighbour) if not provided)
   * e.g. ` --inter 0 1`
-* `--toSpace`: Which space do you want final result in. 
+* `--toSpace`: Which space do you want the final result in? 
   * `--toSpace "image"` is default and registers maps and atlases to image space, `--toSpace "MNI"` registers isolated brain to MNI space
   * `--toSpace "MNI"` renders `--other` inactive as it assumes others are in MNI space. 
-  * `--inter` must be a single number: the interpolation procedure for reslicing of brain to MNI space
+  * `--inter` must be a single number: the interpolation procedure for reslicing of the brain to MNI space
 
 ## Note!
 This code is intended for academic and research use only. Please cite the appropriate references when using TotalSegmentator or SPM in publications.
