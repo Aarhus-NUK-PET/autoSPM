@@ -224,7 +224,7 @@ def validate_inputs(imgPath, maskPath, toSpace, norm, outputPath=None, filename=
             raise ValueError(f"'other' and 'inter' must be of the same length. Got: {len(other)} and {len(inter_arr)}. Please choose interpolation method(s) for each image in 'other'.")
         
     if  norm and tospacefin != 'mni':
-        print(f'WARNING! Normalization only able for registration to MNI space') 
+        print(f"WARNING! Don't try to ice-skate uphill! Normalization currently only possible for registration to MNI space") 
         
 def validate_brainnum(maskPath, brainnum):
     if not isinstance(brainnum, int) or brainnum < 0:
