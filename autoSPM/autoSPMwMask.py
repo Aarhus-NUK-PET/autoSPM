@@ -3,10 +3,11 @@ import numpy as np
 from scipy.ndimage import binary_dilation
 import SimpleITK as sitk
 import matlab.engine
+import sys
 
 
 
-def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image', other=None, inter=None, verbose=False):
+def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image', norm=False, other=None, inter=None, verbose=False):
     """
     Saves 
     
@@ -18,7 +19,7 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image'
     Returns:
     str: Path to the generated white matter mask.
     """
-    validate_inputs(imgPath, maskPath, toSpace, outputPath, other, inter)
+    validate_inputs(imgPath, maskPath, toSpace, norm, outputPath, other, inter)
     validate_brainnum(maskPath, brainnum)
     toSpace = toSpace.lower()
     
@@ -85,9 +86,9 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image'
     # Reslice to MNI space
     elif toSpace == 'mni':
         if inter is not None:
-            resliced = eng.Brainregister(brainPath, np.array(inter))
+            resliced = eng.Brainregister(brainPath, norm, np.array(inter))
         else:
-            resliced = eng.Brainregister(brainPath)
+            resliced = eng.Brainregister(brainPath, norm)
 
     if verbose:
         if toSpace == 'mni':
@@ -161,7 +162,7 @@ def corrOriginToMNI(cropped_img: sitk.Image, mni_img: sitk.Image) -> sitk.Image:
 
 
 
-def validate_inputs(imgPath, maskPath, toSpace, outputPath=None, other=None, inter=None):
+def validate_inputs(imgPath, maskPath, toSpace, norm, outputPath=None, other=None, inter=None):
     # Check toSpace argment
     # toSpace must be either 'Image' or 'MNI'
     tospacefin = toSpace.lower()
@@ -213,6 +214,9 @@ def validate_inputs(imgPath, maskPath, toSpace, outputPath=None, other=None, int
     if other is not None and inter_arr is not None:
         if len(other) != len(inter_arr):
             raise ValueError(f"'other' and 'inter' must be of the same length. Got: {len(other)} and {len(inter_arr)}. Please choose interpolation method(s) for each image in 'other'.")
+        
+    if  norm and tospacefin != 'mni':
+        print(f'WARNING! Normalization only able for registration to MNI space') 
         
 def validate_brainnum(maskPath, brainnum):
     if not isinstance(brainnum, int) or brainnum < 0:

@@ -4,7 +4,7 @@ import autoSPM as spm
 import os
 import argparse
 
-def autoSPM(imgPath, ctPath, outputPath=None, toSpace='Image', other=None, inter=None, verbose=False, fullverbose=False):
+def autoSPM(imgPath, ctPath, outputPath=None, toSpace='Image', norm=False, other=None, inter=None, verbose=False, fullverbose=False):
     """
     Main function to run the autoSPM pipeline.
 
@@ -21,12 +21,12 @@ def autoSPM(imgPath, ctPath, outputPath=None, toSpace='Image', other=None, inter
     """
     if fullverbose: verbose = True
     if verbose: print("################ Running autoSPM ################  \n")
-    spm.validate_inputs(imgPath, ctPath, toSpace, outputPath, other, inter)
+    spm.validate_inputs(imgPath, ctPath, toSpace, norm, outputPath, other, inter)
 
     if verbose: print(f"Running TotalSegmentator for brain segmentation on ct...")
     # Run TotalSegmentator for brain segmentation
     if not 'brain.nii.gz' in os.listdir(outputPath):
-        totalsegmentator(ctPath, outputPath, roi_subset=['brain'], fast=True, verbose=fullverbose)
+        totalsegmentator(ctPath, outputPath, roi_subset=['brain'], fast=True, verbose=fullverbose, quiet=not verbose)
         if verbose: print(f"TotalSegmentator finished! ")
     else: 
         if verbose: print(f"Brain mask found, skipping segmentation.")
@@ -38,7 +38,7 @@ def autoSPM(imgPath, ctPath, outputPath=None, toSpace='Image', other=None, inter
 
     if verbose: print(f"\nRunning SPM registration...")
 
-    registered = spm.autoSPMwMask(imgPath, segFile, brainnum=int(num), outputPath=outputPath, toSpace=toSpace, other=other, inter=inter, verbose=verbose)
+    registered = spm.autoSPMwMask(imgPath, segFile, brainnum=int(num), outputPath=outputPath, toSpace=toSpace, norm=norm, other=other, inter=inter, verbose=verbose)
 
     if verbose: print(f"\nSPM registration finished!")
     if verbose: print(f"\n################ autoSPM finished! ################  \n")
@@ -51,6 +51,7 @@ def main():
     parser.add_argument("--ctPath", type=str, required=True, help="Path to the CT image file.")
     parser.add_argument("--outputDir", type=str, required=True, help="Path to save the output image files.")
     parser.add_argument("--toSpace", type=str, default='Image', help="'Image' or 'MNI' depending on whether you want to register atlases to image space or the image brain to MNI space.")
+    parser.add_argument("--norm", action='store_true', help="Enable full brain normalization to MNI. If not set, normalization is disabled. Only used if toSpace is MNI")
     parser.add_argument("--other", type=str, nargs='*', default=None, help="Additional images to co-register (must be in MNI space).")
     parser.add_argument("--inter", type=int, nargs='*', default=None, help="Interpolation method for co-registration of additional images.")
     parser.add_argument("--verbose", action='store_true', help="Enable verbose output.")
@@ -58,7 +59,14 @@ def main():
 
     args = parser.parse_args()
     
-    autoSPM(args.toSegment, args.ctPath, args.outputDir, args.toSpace, args.other, args.inter, args.verbose, args.fullverbose)
+    autoSPM(args.toSegment, args.ctPath, 
+            outputPath=args.outputDir, 
+            toSpace=args.toSpace, 
+            other=args.other,
+            norm=args.norm, 
+            inter=args.inter, 
+            verbose=args.verbose, 
+            fullverbose=args.fullverbose)
 
 
 if __name__ == "__main__":
