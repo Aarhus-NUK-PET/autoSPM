@@ -1,14 +1,16 @@
-function registered = Brainregister(BrainPET, nonrigid, interpol)
+function registered = Brainregister(BrainPET, norm, interpol)
     %SPMRESCLICE Summary of this function goes here
     %   Detailed explanation goes here
-    if nargin < 2
+    if nargin < 3
         interpol = 4;
     elseif ~isempty(interpol)
         if ~isnumeric(interpol) || numel(interpol) ~= numel({BrainPET})
             error('The "interpol" argument must be a numeric vector one element".');
         end
     end
-    
+    spm('defaults', 'PET');
+    spm_jobman('initcfg'); 
+
     mnispace = fullfile(spm('Dir'),'canonical','avg152T1.nii');
 
     matlabbatch{1}.spm.spatial.coreg.estimate.ref = cellstr(mnispace);
@@ -21,7 +23,13 @@ function registered = Brainregister(BrainPET, nonrigid, interpol)
 
     spm_jobman('run', matlabbatch);
 
-    if nonrigid
+    P = char(mnispace, BrainPET);  % Reference first
+    spm_reslice(P, struct('interp', double(interpol(1)), 'mask', 0, 'which', 1, 'mean', 0, 'prefix', ''));
+
+    registered = BrainPET;
+
+    if norm
+        clear matlabbatch;
         matlabbatch{1}.spm.spatial.normalise.estwrite.subj.vol = cellstr(BrainPET);
         matlabbatch{1}.spm.spatial.normalise.estwrite.subj.resample = cellstr(BrainPET);
         matlabbatch{1}.spm.spatial.normalise.estwrite.eoptions.biasreg = 0.0001;
@@ -35,11 +43,11 @@ function registered = Brainregister(BrainPET, nonrigid, interpol)
         matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.vox = [2 2 2];
         matlabbatch{1}.spm.spatial.normalise.estwrite.woptions.interp = 4;
         spm_jobman('run', matlabbatch);
-    else
-        P = char(mnispace, BrainPET);  % Reference first
-        spm_reslice(P, struct('interp', double(interpol(1)), 'mask', 0, 'which', 1, 'mean', 0, 'prefix', ''));
+    
+        [filepath, name, ext] = fileparts(BrainPET);
+        registered = fullfile(filepath, ['w' name ext]);
     end
     
     
-    registered = BrainPET;
+
 end
