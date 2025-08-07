@@ -21,12 +21,15 @@ def autoSPM(imgPath, ctPath, outputPath=None, filename='Brain', toSpace='MNI', n
     """
     if fullverbose: verbose = True
     if verbose: print("################ Running autoSPM ################  \n")
-    spm.validate_inputs(imgPath=imgPath, maskpath=ctPath, toSpace=toSpace, norm=norm, outputPath=outputPath, filename=filename, other=other, inter=inter)
+    spm.validate_inputs(imgPath=imgPath, maskPath=ctPath, toSpace=toSpace, norm=norm, outputPath=outputPath, filename=filename, other=other, inter=inter)
 
     if verbose: print(f"Running TotalSegmentator for brain segmentation on ct...")
     # Run TotalSegmentator for brain segmentation
-    if not 'brain.nii.gz' in os.listdir(outputPath):
+    if not 'brainmask.nii.gz' in os.listdir(outputPath):
         totalsegmentator(ctPath, outputPath, roi_subset=['brain'], fast=True, verbose=fullverbose, quiet=not verbose)
+        segFile = os.path.join(outputPath, 'brain.nii.gz')
+        newName = os.path.join(outputPath, 'brainmask.nii.gz')
+        os.rename(segFile, newName)
         if verbose: print(f"TotalSegmentator finished! ")
     else: 
         if verbose: print(f"Brain mask found, skipping segmentation.")
@@ -38,7 +41,7 @@ def autoSPM(imgPath, ctPath, outputPath=None, filename='Brain', toSpace='MNI', n
 
     if verbose: print(f"\nRunning SPM registration...")
 
-    registered = spm.autoSPMwMask(imgPath, segFile, brainnum=int(num), outputPath=outputPath, toSpace=toSpace, norm=norm, other=other, inter=inter, verbose=verbose)
+    _ = spm.autoSPMwMask(imgPath, segFile, brainnum=int(num), outputPath=outputPath, filename=filename, toSpace=toSpace, norm=norm, other=other, inter=inter, verbose=verbose)
 
     if verbose: print(f"\nSPM registration finished!")
     if verbose: print(f"\n################ autoSPM finished! ################  \n")
