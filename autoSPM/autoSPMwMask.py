@@ -7,7 +7,7 @@ import sys
 
 
 
-def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image', norm=False, other=None, inter=None, verbose=False):
+def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, filename='Brain', toSpace='MNI', norm=True, other=None, inter=None, verbose=False):
     """
     Saves 
     
@@ -19,7 +19,7 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image'
     Returns:
     str: Path to the generated white matter mask.
     """
-    validate_inputs(imgPath, maskPath, toSpace, norm, outputPath, other, inter)
+    validate_inputs(imgPath=imgPath, maskPath=maskPath, toSpace=toSpace, norm=norm, outputPath=outputPath, filename=filename, other=other, inter=inter)
     validate_brainnum(maskPath, brainnum)
     toSpace = toSpace.lower()
     
@@ -63,7 +63,7 @@ def autoSPMwMask(imgPath, maskPath, brainnum=1, outputPath=None, toSpace='Image'
     brainMNI = corrOriginToMNI(imgCrop, mnitemp)
     regDir = os.path.join(outputPath, 'registered')
     os.makedirs(regDir, exist_ok=True)
-    brainPath = os.path.join(regDir,"BrainInMNI.nii")
+    brainPath = os.path.join(regDir,f"{filename}.nii")
     sitk.WriteImage(brainMNI, brainPath)
 
     # Reslice to target space
@@ -162,7 +162,7 @@ def corrOriginToMNI(cropped_img: sitk.Image, mni_img: sitk.Image) -> sitk.Image:
 
 
 
-def validate_inputs(imgPath, maskPath, toSpace, norm, outputPath=None, other=None, inter=None):
+def validate_inputs(imgPath, maskPath, toSpace, norm, outputPath=None, filename=None, other=None, inter=None):
     # Check toSpace argment
     # toSpace must be either 'Image' or 'MNI'
     tospacefin = toSpace.lower()
@@ -182,6 +182,14 @@ def validate_inputs(imgPath, maskPath, toSpace, norm, outputPath=None, other=Non
                 os.makedirs(outputPath)
             except Exception as e:
                 raise RuntimeError(f"Failed to create output directory '{outputPath}': {e}")
+    
+    # Check filename is string if provided
+    if filename is not None and not isinstance(filename, str):
+        raise TypeError(f"'filename' must be a string. Got: {type(filename)}")
+    # Assert filename does not have a file postfix
+    if filename is not None:
+        if any(filename.lower().endswith(ext) for ext in ['.nii', '.nii.gz', '.img', '.hdr', '.mha', '.mhd', '.nrrd', '.dcm']):
+            raise ValueError(f"'filename' should not include a file extension. Got: {filename}")
     
     # Check 'other' input
     if other is not None:
