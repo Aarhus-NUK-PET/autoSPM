@@ -4,7 +4,7 @@ import autoSPM as spm
 import os
 import argparse
 
-def autoSPM(imgPath, ctPath, outputPath=None, toSpace='Image', norm=False, other=None, inter=None, verbose=False, fullverbose=False):
+def autoSPM(imgPath, ctPath, outputPath=None, filename='Brain', toSpace='MNI', norm=True, other=None, inter=None, verbose=False, fullverbose=False):
     """
     Main function to run the autoSPM pipeline.
 
@@ -21,7 +21,7 @@ def autoSPM(imgPath, ctPath, outputPath=None, toSpace='Image', norm=False, other
     """
     if fullverbose: verbose = True
     if verbose: print("################ Running autoSPM ################  \n")
-    spm.validate_inputs(imgPath, ctPath, toSpace, norm, outputPath, other, inter)
+    spm.validate_inputs(imgPath=imgPath, maskpath=ctPath, toSpace=toSpace, norm=norm, outputPath=outputPath, filename=filename, other=other, inter=inter)
 
     if verbose: print(f"Running TotalSegmentator for brain segmentation on ct...")
     # Run TotalSegmentator for brain segmentation
@@ -31,7 +31,7 @@ def autoSPM(imgPath, ctPath, outputPath=None, toSpace='Image', norm=False, other
     else: 
         if verbose: print(f"Brain mask found, skipping segmentation.")
     # Find the brain region number
-    segFile = os.path.join(outputPath, 'brain.nii.gz')
+    segFile = os.path.join(outputPath, 'brainmask.nii.gz')
     seg = nib.load(segFile)
     num = seg.get_fdata().max().astype(int)
     if num == 0: raise ValueError("No brain region found in the segmentation file.")
@@ -50,8 +50,9 @@ def main():
     parser.add_argument("--toSegment", type=str, required=True, help="Path to the input image file.")
     parser.add_argument("--ctPath", type=str, required=True, help="Path to the CT image file.")
     parser.add_argument("--outputDir", type=str, required=True, help="Path to save the output image files.")
-    parser.add_argument("--toSpace", type=str, default='Image', help="'Image' or 'MNI' depending on whether you want to register atlases to image space or the image brain to MNI space.")
-    parser.add_argument("--norm", action='store_true', help="Enable full brain normalization to MNI. If not set, normalization is disabled. Only used if toSpace is MNI")
+    parser.add_argument("--filename", type=str, default='Brain', help="Filename for registered brain nifti file.")
+    parser.add_argument("--toSpace", type=str, default='MNI', help="'Image' or 'MNI' depending on whether you want to register atlases to image space or the image brain to MNI space.")
+    parser.add_argument("--nonorm", action='store_false', help="Enable full brain normalization to MNI. If not set, normalization is disabled. Only used if toSpace is MNI")
     parser.add_argument("--other", type=str, nargs='*', default=None, help="Additional images to co-register (must be in MNI space).")
     parser.add_argument("--inter", type=int, nargs='*', default=None, help="Interpolation method for co-registration of additional images.")
     parser.add_argument("--verbose", action='store_true', help="Enable verbose output.")
@@ -61,6 +62,7 @@ def main():
     
     autoSPM(args.toSegment, args.ctPath, 
             outputPath=args.outputDir, 
+            filename=args.filename,
             toSpace=args.toSpace, 
             other=args.other,
             norm=args.norm, 
