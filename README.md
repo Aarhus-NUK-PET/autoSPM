@@ -36,9 +36,9 @@ outputDir/
 ```
 
 Other settings:
-* `--filename`: Filename of resulting registered brain. 'Brain' is default. (Do not include file extension)
+* `--filename`: Filename of resulting registered brain. `'Brain'` is default. (Do not include file extension)
 * `--nonorm`: Skips final nomalization step and thus only performs rigid co-registration to MNI space
-* `--inter`: The interpolation procedure for reslicing of the brain to MNI space. 4 is default (must be an integer)
+* `--inter`: The interpolation procedure for reslicing of the brain to MNI space. `4` is default (must be an integer)
 * `--toSpace`: Final image space. `--toSpace "MNI"` is default and registers isolated brain to MNI space, `--toSpace "image"` registers field maps and atlases to image space
 
 If `--toSpace` is `"image"` then:  
