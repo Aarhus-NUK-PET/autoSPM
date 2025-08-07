@@ -40,6 +40,7 @@ Other settings:
 * `--nonorm`: Skips final nomalization step and thus only performs rigid co-registration to MNI space
 * `--inter`: The interpolation procedure for reslicing of the brain to MNI space. 4 is default (must be an integer)
 * `--toSpace`: Final image space. `--toSpace "MNI"` is default and registers isolated brain to MNI space, `--toSpace "image"` registers field maps and atlases to image space
+
 If `--toSpace` is `"image"` then:  
   * `--other`: Other images/atlases in MNI space to coregister. Takes a space-separated list of paths
     * e.g. ` --other 'path/atlas1.nii' 'path/atlas2.nii'`
