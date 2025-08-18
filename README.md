@@ -1,6 +1,6 @@
 # autoSPM
 
-**autoSPM** is a Python-based pipeline for automatic brain segmentation and normalization to MNI-space from total-body PET/CT images using TotalSegmentator and SPM12 (via MATLAB).  
+**autoSPM** is a Python-based pipeline for automatic brain normalization to MNI-space from total-body PET/CT images using TotalSegmentator and SPM12 (via MATLAB).  
 
 
 ## Features
